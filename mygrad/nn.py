@@ -1,5 +1,6 @@
 import random
 from mygrad.engine import Value
+import json
 
 class Neuron:
 
@@ -44,3 +45,17 @@ class MLP:
 
     def parameters(self):
         return [p for layer in self.layers for p in layer.parameters()]
+
+    def save_weights(self, filename):
+        weights = [p.data for p in self.parameters()]
+        with open(filename, 'w') as f:
+            json.dump(weights, f)
+        print(f"Weights saved to {filename}")
+
+    def load_weights(self, filename):
+        with open(filename, 'r') as f:
+            weights = json.load(f)
+
+        for p, w in zip(self.parameters(), weights):
+            p.data = w
+        print(f"Weights loaded from {filename}")

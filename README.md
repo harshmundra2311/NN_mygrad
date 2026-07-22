@@ -3,85 +3,77 @@
 ![Python](https://img.shields.io/badge/python-3.x-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-**mygrad** is a tiny, scalar-valued autograd engine and neural network library built entirely from scratch in pure Python. It implements backpropagation dynamically over a DAG (Directed Acyclic Graph) and features a built-in Neural Network API to easily construct and train Multi-Layer Perceptrons (MLPs).
+**mygrad** is a lightweight, scalar-valued autograd engine and neural network framework built entirely from scratch in pure Python. It dynamically builds a Directed Acyclic Graph (DAG) for mathematical operations and implements backpropagation to train neural networks without relying on massive tensor libraries like PyTorch or TensorFlow.
 
-> **A massive shoutout to Andrej Karpathy (the absolute GOAT 🐐)**. This project was heavily inspired by his incredible `micrograd` library and his zero-to-hero educational series. If you want to understand how deep learning works under the hood, go watch his videos!
+> **A massive shoutout to Andrej Karpathy (the absolute GOAT 🐐)**. This project was heavily inspired by his incredible `micrograd` library and his zero-to-hero educational series. If you want to understand how deep learning truly works under the hood, his content is mandatory watching!
 
 ---
 
-## ✨ Features
+## ✨ Framework Features
 
-* **Autograd Engine**: A robust `Value` object that keeps track of mathematical operations (`+`, `-`, `*`, `/`, `**`, `tanh`, `exp`) and automatically computes gradients via the chain rule.
-* **Neural Network API**: Clean, PyTorch-like abstractions including `Neuron`, `Layer`, and `MLP` classes to build neural networks of any size.
-* **Graph Visualization**: Built-in integration with `graphviz` to render the microscopic computational graph (every single mathematical operation) and the macroscopic MLP architecture.
-* **Smart Edge Rendering**: When visualizing the MLP, weights are color-coded (🔵 **Blue** = Positive, 🔴 **Red** = Negative) and line thicknesses dynamically adjust based on the magnitude of the weight! You can literally see what your network has learned.
+* **Autograd Engine (`engine.py`)**: A robust `Value` object that wraps scalars, tracking operations (`+`, `-`, `*`, `/`, `**`, `tanh`, `exp`) and automatically computing gradients via the chain rule.
+* **Neural Network API (`nn.py`)**: PyTorch-like abstractions including `Neuron`, `Layer`, and `MLP` classes to easily build complex multi-layer perceptrons.
+* **Model Serialization**: Built-in `save_weights` and `load_weights` methods using JSON to save your trained brains and load them instantly for inference without retraining.
+* **Architecture Visualization (`visualize.py`)**: Integration with `graphviz` to render microscopic computational graphs and macroscopic MLP architectures. 
+  * *Smart Edge Rendering*: In the MLP visualization, edges are color-coded (🔵 **Blue** = Positive Weight, 🔴 **Red** = Negative Weight) and line thicknesses dynamically adjust based on weight magnitude!
+
+---
+
+## 🏆 Highlighted Projects
+
+Using this custom framework, we have built and solved several classic Machine Learning problems:
+
+### 1. Solving the Historic XOR Problem (`test_xor.py`)
+In the 1970s, single-layer perceptrons were mathematically proven to be incapable of solving the XOR logic gate, leading to an "AI Winter". By training a custom `MLP(2, [8, 1])` using Mean Squared Error, our network successfully learned the non-linear XOR function, driving the loss down to `0.0004`!
+
+### 2. The "Make Moons" Binary Classifier (`test_moons.py`)
+Using `scikit-learn` to generate a complex, interlocking 2D dataset (the "Moons" dataset), we trained a deep `MLP(2, [16, 16, 1])`. 
+* **The Result:** The network learned to perfectly curve its decision space to separate the two datasets. We visualized this using `matplotlib` to draw stunning 2D contour maps of the network's learned decision boundary.
+
+### 3. Interactive Prediction Engine (`predict.py`)
+We built a production-ready interactive script that loads the pre-trained JSON weights of the "Moons" model. The user can type in any X and Y coordinates, and the script will:
+* Instantly classify the coordinate as a Red Moon or Blue Moon.
+* Render a fresh 2D decision boundary map and drop a giant **Yellow Star 🌟** exactly where the prediction was made!
 
 ---
 
 ## 🚀 Quick Start
 
 ### Installation
-Since this is a lightweight educational tool, simply clone the repository and make sure you have `graphviz` installed to generate the visual graphs.
-
+Clone the repository and install the dependencies to generate the visual graphs.
 ```bash
-git clone https://github.com/yourusername/mygrad.git
-cd mygrad
-pip install graphviz
+git clone https://github.com/harshmundra2311/NN_mygrad.git
+cd "NN and backpropogation"
+pip install graphviz numpy matplotlib scikit-learn
 ```
 
-### Training a Neural Network
-Here is an example of creating an MLP, feeding it a tiny dataset, and running a Gradient Descent training loop to teach it the targets.
-
-```python
-from mygrad.nn import MLP
-from mygrad.engine import Value
-from mygrad.visualize import draw_mlp
-
-# 1. Initialize a model (3 inputs, two hidden layers of 4, 1 output)
-model = MLP(3, [4, 4, 1])
-
-# 2. Define a dataset
-xs = [
-    [2.0, 3.0, -1.0],
-    [3.0, -1.0, 0.5],
-    [0.5, 1.0, 1.0],
-    [1.0, 1.0, -1.0],
-]
-ys = [1.0, -1.0, -1.0, 1.0]
-
-# 3. Training Loop (Gradient Descent)
-epochs = 50
-learning_rate = 0.05
-
-for k in range(epochs):
-    # Forward pass
-    ypred = [model(x) for x in xs]
-    
-    # Calculate Mean Squared Error loss
-    loss = sum(((Value(y) - yp)**2 for yp, y in zip(ypred, ys)), Value(0.0))
-    
-    # Zero gradients
-    for p in model.parameters():
-        p.grad = 0.0
-        
-    # Backward pass
-    loss.backward()
-    
-    # Update weights
-    for p in model.parameters():
-        p.data -= learning_rate * p.grad
-        
-    print(f"Epoch {k+1} | Loss: {loss.data:.4f}")
-
-# 4. Visualize the trained network!
-dot = draw_mlp(model, nin=3)
-dot.render("trained_network", format="svg", cleanup=True)
+### Running the Projects
+**Train the Moons Classifier:**
+```bash
+python test_moons.py
 ```
+*(This will train the network, save the `moons_model.json` weights, and output `moons_decision_boundary.png`)*
+
+**Run the Interactive Predictor:**
+```bash
+python predict.py
+```
+*(Enter your coordinates to see the model classify them in real-time and output `prediction_visualized.png`!)*
+
+---
 
 ## 📊 Visualizations
 
-![mlp after learning.svg](mlp%20after%20learning.svg)
-![mlp abstract visualiztion.svg](mlp%20visualization.svg)
+*(Check out the images generated by the code!)*
+
+### The Neural Network Architecture (XOR)
+![xor mlp visualization.svg](xor%20mlp%20visualization.svg)
+
+### Learned Decision Boundary (Make Moons)
+![moons_decision_boundary.png](moons_decision_boundary.png)
+
+### Interactive Prediction Star
+![prediction_visualized.png](prediction_visualized.png)
 
 ---
 
